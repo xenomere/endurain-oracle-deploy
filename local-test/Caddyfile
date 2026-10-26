@@ -1,0 +1,9 @@
+# Replace endurain.example.duckdns.org with your DuckDNS host.
+# Caddy obtains and renews the Let's Encrypt certificate automatically.
+{$ENDURAIN_HOST:endurain.example.duckdns.org} {
+	encode zstd gzip
+	reverse_proxy endurain:8080 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+	}
+}

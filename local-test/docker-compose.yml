@@ -1,0 +1,55 @@
+# endurain on Oracle Cloud Always Free (ARM Ampere)
+# Services: Caddy (TLS) · endurain API (local profile, jobs in-process) · Postgres 18
+services:
+  caddy:
+    image: caddy:2
+    container_name: endurain-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - endurain
+
+  endurain:
+    # Published multi-arch image (linux/arm64 available) — no build needed.
+    image: ghcr.io/endurain-project/endurain:v0.20.0
+    container_name: endurain-app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data/backend/data:/app/backend/data
+      - ./data/backend/logs:/app/backend/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18
+    container_name: endurain-postgres
+    restart: unless-stopped
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-endurain}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  # Optional: durable Redis-backed job queue (needs an image built with
+  # PYTHON_EXTRAS=distributed and REDIS_URL=redis://redis:6379/0).
+  # redis:
+  #   image: redis:7-alpine
+  #   restart: unless-stopped
+  #   command: ["redis-server", "--appendonly", "yes"]
+  #   volumes:
+  #     - ./data/redis:/data
+
+volumes:
+  caddy_data:
+  caddy_config:

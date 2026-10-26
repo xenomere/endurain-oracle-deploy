@@ -1,5 +1,5 @@
 # endurain on Oracle Cloud Always Free (ARM Ampere)
-# Services: Caddy (TLS) · endurain API · endurain worker · Postgres 18 · Redis
+# Services: Caddy (TLS) · endurain API (local profile, jobs in-process) · Postgres 18
 services:
   caddy:
     image: caddy:2
@@ -17,24 +17,10 @@ services:
 
   endurain:
     # Published multi-arch image (linux/arm64 available) — no build needed.
-    image: ghcr.io/endurain-project/endurain:0.20.1
+    image: ghcr.io/endurain-project/endurain:v0.20.0
     container_name: endurain-app
     restart: unless-stopped
     env_file: .env
-    volumes:
-      - ./data/backend/data:/app/backend/data
-      - ./data/backend/logs:/app/backend/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  worker:
-    image: ghcr.io/endurain-project/endurain:0.20.1
-    container_name: endurain-worker
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      - APP_ROLE=worker
     volumes:
       - ./data/backend/data:/app/backend/data
       - ./data/backend/logs:/app/backend/logs
