@@ -1,0 +1,12 @@
+#cloud-config
+# Paste this as "User data" when creating the Oracle VM
+# (shape VM.Standard.A1.Flex, image Ubuntu 24.04 aarch64).
+package_update: true
+packages:
+  - git
+  - curl
+  - ufw
+runcmd:
+  - curl -fsSL https://raw.githubusercontent.com/endurain-project/endurain/main/docker/Dockerfile -o /dev/null || true
+  - mkdir -p /opt/endurain/oracle
+  - echo "Bootstrap files are copied by the operator after first boot (see README step 6)."
